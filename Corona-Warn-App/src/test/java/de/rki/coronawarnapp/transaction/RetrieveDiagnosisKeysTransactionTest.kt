@@ -11,8 +11,11 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
+import io.mockk.slot
 import io.mockk.unmockkAll
 import kotlinx.coroutines.runBlocking
+import org.hamcrest.CoreMatchers.`is`
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -50,7 +53,9 @@ class RetrieveDiagnosisKeysTransactionTest {
 
     @Test
     fun testTransactionNoFiles() {
-        coEvery { RetrieveDiagnosisKeysTransaction["executeFetchKeyFilesFromServer"](any<Date>()) } returns listOf<File>()
+        coEvery {
+            RetrieveDiagnosisKeysTransaction["executeFetchKeyFilesFromServer"](any<Date>())
+        } returns listOf<File>()
 
         runBlocking {
             RetrieveDiagnosisKeysTransaction.start()
@@ -86,6 +91,77 @@ class RetrieveDiagnosisKeysTransactionTest {
                 )
                 RetrieveDiagnosisKeysTransaction["executeFetchDateUpdate"](any<Date>())
             }
+        }
+    }
+
+    /**
+     * Test rollback after
+     * [RetrieveDiagnosisKeysTransaction.RetrieveDiagnosisKeysTransactionState.SETUP]
+     * transaction state.
+     */
+    @Test
+    fun testSetupRollback() {
+        coEvery {
+            RetrieveDiagnosisKeysTransaction["executeFetchKeyFilesFromServer"](any<Date>())
+        } returns listOf<File>()
+        coEvery { RetrieveDiagnosisKeysTransaction["executeToken"]() } throws Exception()
+
+        val date = Date()
+        val rollbackDate = slot<Date>()
+        every { LocalData.lastTimeDiagnosisKeysFromServerFetch() } returns date
+        every { LocalData.lastTimeDiagnosisKeysFromServerFetch(capture(rollbackDate)) } just Runs
+
+        runBlocking {
+
+            try {
+                RetrieveDiagnosisKeysTransaction.start()
+            } catch (ex: Exception) {
+            }
+
+            coVerifyOrder {
+                RetrieveDiagnosisKeysTransaction.start()
+                RetrieveDiagnosisKeysTransaction["executeSetup"]()
+                LocalData.lastTimeDiagnosisKeysFromServerFetch(any())
+            }
+
+            assertThat(rollbackDate.isCaptured, `is`(true))
+            assertThat(date, `is`(rollbackDate.captured))
+        }
+    }
+
+    /**
+     * Test rollback after
+     * [RetrieveDiagnosisKeysTransaction.RetrieveDiagnosisKeysTransactionState.TOKEN]
+     * transaction state.
+     */
+    @Test
+    fun testTokenRollback() {
+        coEvery {
+            RetrieveDiagnosisKeysTransaction["executeFetchKeyFilesFromServer"](any<Date>())
+        } returns listOf<File>()
+        coEvery { RetrieveDiagnosisKeysTransaction["executeRetrieveRiskScoreParams"]() } throws Exception()
+
+        val token = UUID.randomUUID().toString()
+        val rollbackToken = slot<String>()
+
+        every { LocalData.googleApiToken() } returns token
+        every { LocalData.googleApiToken(capture(rollbackToken)) } just Runs
+
+        runBlocking {
+
+            try {
+                RetrieveDiagnosisKeysTransaction.start()
+            } catch (ex: Exception) {
+            }
+
+            coVerifyOrder {
+                RetrieveDiagnosisKeysTransaction.start()
+                RetrieveDiagnosisKeysTransaction["executeToken"]()
+                LocalData.googleApiToken(any())
+            }
+
+            assertThat(rollbackToken.isCaptured, `is`(true))
+            assertThat(token, `is`(rollbackToken.captured))
         }
     }
 
