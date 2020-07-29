@@ -263,10 +263,6 @@ object BackgroundWorkScheduler {
         OneTimeWorkRequestBuilder<DiagnosisKeyRetrievalOneTimeWorker>()
             .addTag(WorkTag.DIAGNOSIS_KEY_RETRIEVAL_ONE_TIME_WORKER.tag)
             .setConstraints(BackgroundWorkHelper.getConstraintsForDiagnosisKeyOneTimeBackgroundWork())
-            .setInitialDelay(
-                BackgroundConstants.KIND_DELAY,
-                TimeUnit.MINUTES
-            )
             .setBackoffCriteria(
                 BackoffPolicy.EXPONENTIAL,
                 BackgroundConstants.BACKOFF_INITIAL_DELAY,
