@@ -1,5 +1,7 @@
 package de.rki.coronawarnapp.util.formatter
 
+import de.rki.coronawarnapp.util.PowerManagementHelper
+
 /**
  * This stati are used for the first row in the main fragment and in the tracing settings,
  * to change the ui depending on the different system stati.
@@ -25,7 +27,7 @@ object TracingStatusHelper {
 fun tracingStatusHelper(tracing: Boolean, bluetooth: Boolean, connection: Boolean, location: Boolean): Int {
     return if (!tracing) {
         TracingStatusHelper.TRACING_INACTIVE
-    } else if (!location) {
+    } else if (!location && !PowerManagementHelper.deviceSupportsLocationlessScanning()) {
         TracingStatusHelper.LOCATION
     } else if (!bluetooth) {
         TracingStatusHelper.BLUETOOTH

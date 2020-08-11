@@ -16,7 +16,7 @@ object PowerManagementHelper {
     /**
      *  Checks if device supports locationless scanning.
      */
-    fun deviceSupportsLocationlessScanning(context: Context): Boolean {
+    fun deviceSupportsLocationlessScanning(): Boolean {
         return Build.VERSION.SDK_INT > Build.VERSION_CODES.Q
     }
 }
