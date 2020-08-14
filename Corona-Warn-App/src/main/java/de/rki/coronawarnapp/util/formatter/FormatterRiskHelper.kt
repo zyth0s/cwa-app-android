@@ -521,6 +521,24 @@ fun formatButtonEnableTracingVisibility(
 ): Int = formatVisibility((isTracingOffRiskLevel(riskLevelScore) && showDetails != true))
 
 /**
+ * Formats the risk card 'open app regularly' reminder visibility based on last risk score calculation (greater than 30 hours)
+ *
+ * @param riskLevelScore
+ * @param showDetails
+ * @return
+ */
+fun formatOpenAppReminderVisibility(
+    riskLevelScore: Int?,
+    riskLevelScoreLastSuccessfulCalculated: Int?,
+    lastTimeDiagnosisKeysFetched: Date?
+    ): String {
+    val appContext = CoronaWarnApplication.getAppContext()
+
+    }
+}
+
+
+/**
  * Formats the risk details button display for enable tracing depending on risk level
  *
  * @param riskLevelScore

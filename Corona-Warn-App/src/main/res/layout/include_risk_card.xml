@@ -201,6 +201,18 @@
                 app:layout_constraintTop_toBottomOf="@+id/risk_card_row_saved_days"
                 app:tracingViewModel="@{tracingViewModel}" />
 
+            <TextView
+                style="@style/body2"
+                android:id="@+id/risk_card_open_app_reminder"
+                android:layout_width="@dimen/match_constraint"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_small"
+                android:text="@string/risk_card_open_app_reminder"
+                android:visibility="@{FormatterHelper.formatVisibilityText(FormatterRiskHelper.formatOpenAppReminderVisibility(tracingViewModel.riskLevel, tracingViewModel.riskLevelScoreLastSuccessfulCalculated, tracingViewModel.isRefreshing))}"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/risk_card_row_time_fetched" />
+
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/risk_card_next_update"
@@ -210,7 +222,7 @@
                 android:visibility="@{FormatterHelper.formatVisibilityText(FormatterRiskHelper.formatNextUpdate(tracingViewModel.riskLevel, settingsViewModel.isBackgroundJobEnabled()))}"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/risk_card_row_time_fetched">
+                app:layout_constraintTop_toBottomOf="@+id/risk_card_open_app_reminder">
 
                 <include
                     android:id="@+id/risk_card_next_update_divider"
