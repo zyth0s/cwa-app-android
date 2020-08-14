@@ -204,6 +204,8 @@
     <string name="risk_card_loading_headline">"Check is running…"</string>
     <!-- XTXT: risk card - loading, data is downloaded and will be checked, this can take several minutes -->
     <string name="risk_card_loading_body">"Current data is being downloaded and checked.\nThis can take several minutes."</string>
+    <!-- XTXT: risk card - reminder to open app daily body text -->
+    <string name="risk_card_open_app_reminder">""</string>
 
     <!-- ####################################
                     Main
