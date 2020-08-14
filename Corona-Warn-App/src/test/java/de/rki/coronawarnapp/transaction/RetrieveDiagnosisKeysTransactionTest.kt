@@ -4,10 +4,12 @@ import com.google.android.gms.nearby.exposurenotification.ExposureConfiguration
 import de.rki.coronawarnapp.nearby.InternalExposureNotificationClient
 import de.rki.coronawarnapp.service.applicationconfiguration.ApplicationConfigurationService
 import de.rki.coronawarnapp.storage.LocalData
+import io.mockk.MockKAnnotations
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerifyOrder
 import io.mockk.every
+import io.mockk.impl.annotations.MockK
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
@@ -26,12 +28,20 @@ import java.util.UUID
  */
 class RetrieveDiagnosisKeysTransactionTest {
 
+    @MockK
+    private lateinit var applicationConfigurationService: ApplicationConfigurationService
+
     @Before
     fun setUp() {
+        MockKAnnotations.init(this)
+
         mockkObject(InternalExposureNotificationClient)
         mockkObject(ApplicationConfigurationService)
         mockkObject(RetrieveDiagnosisKeysTransaction)
         mockkObject(LocalData)
+
+        mockkObject(ApplicationConfigurationService.Companion)
+        coEvery { ApplicationConfigurationService.getInstance() } returns applicationConfigurationService
 
         coEvery { InternalExposureNotificationClient.asyncIsEnabled() } returns true
         coEvery {
@@ -41,7 +51,7 @@ class RetrieveDiagnosisKeysTransactionTest {
                 any()
             )
         } returns mockk()
-        coEvery { ApplicationConfigurationService.asyncRetrieveExposureConfiguration() } returns mockk()
+        coEvery { applicationConfigurationService.asyncRetrieveExposureConfiguration() } returns mockk()
         every { LocalData.googleApiToken(any()) } just Runs
         every { LocalData.lastTimeDiagnosisKeysFromServerFetch() } returns Date()
         every { LocalData.lastTimeDiagnosisKeysFromServerFetch(any()) } just Runs

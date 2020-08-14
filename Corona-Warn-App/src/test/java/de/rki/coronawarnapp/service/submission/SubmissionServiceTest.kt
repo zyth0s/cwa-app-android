@@ -10,6 +10,7 @@ import de.rki.coronawarnapp.util.formatter.TestResult
 import io.mockk.MockKAnnotations
 import io.mockk.Runs
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.just
@@ -66,13 +67,13 @@ class SubmissionServiceTest {
         coEvery {
             webRequestBuilder.asyncGetRegistrationToken(any(), KeyType.GUID)
         } returns registrationToken
-        every { backgroundNoise.scheduleDummyPattern() } just Runs
+        coEvery { backgroundNoise.scheduleDummyPattern() } just Runs
 
         runBlocking {
             SubmissionService.asyncRegisterDevice()
         }
 
-        verify(exactly = 1) {
+        coVerify(exactly = 1) {
             LocalData.registrationToken(registrationToken)
             LocalData.devicePairingSuccessfulTimestamp(any())
             LocalData.testGUID(null)
@@ -91,13 +92,13 @@ class SubmissionServiceTest {
         coEvery {
             webRequestBuilder.asyncGetRegistrationToken(any(), KeyType.TELETAN)
         } returns registrationToken
-        every { backgroundNoise.scheduleDummyPattern() } just Runs
+        coEvery { backgroundNoise.scheduleDummyPattern() } just Runs
 
         runBlocking {
             SubmissionService.asyncRegisterDevice()
         }
 
-        verify(exactly = 1) {
+        coVerify(exactly = 1) {
             LocalData.registrationToken(registrationToken)
             LocalData.devicePairingSuccessfulTimestamp(any())
             LocalData.teletan(null)

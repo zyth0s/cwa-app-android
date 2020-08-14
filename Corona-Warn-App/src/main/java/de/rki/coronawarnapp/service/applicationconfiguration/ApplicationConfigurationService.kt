@@ -4,9 +4,22 @@ import com.google.android.gms.nearby.exposurenotification.ExposureConfiguration
 import de.rki.coronawarnapp.http.WebRequestBuilder
 import de.rki.coronawarnapp.server.protocols.ApplicationConfigurationOuterClass.ApplicationConfiguration
 
-object ApplicationConfigurationService {
+class ApplicationConfigurationService(private val webRequestBuilder: WebRequestBuilder) {
+
+    companion object {
+        @Volatile
+        private var instance: ApplicationConfigurationService? = null
+
+        fun getInstance(): ApplicationConfigurationService {
+            return instance ?: synchronized(this) {
+                instance ?: ApplicationConfigurationService(WebRequestBuilder.getInstance())
+                    .also { instance = it }
+            }
+        }
+    }
+
     suspend fun asyncRetrieveApplicationConfiguration(): ApplicationConfiguration {
-        return WebRequestBuilder.getInstance().asyncGetApplicationConfigurationFromServer()
+        return webRequestBuilder.asyncGetApplicationConfigurationFromServer()
     }
 
     suspend fun asyncRetrieveExposureConfiguration(): ExposureConfiguration =

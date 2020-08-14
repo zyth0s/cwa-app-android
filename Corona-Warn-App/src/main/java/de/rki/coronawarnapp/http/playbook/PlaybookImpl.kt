@@ -14,8 +14,13 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
+/**
+ * Implementation of the playbook pattern.
+ * Dummy requests can be disabled using a feature flag.
+ */
 class PlaybookImpl(
-    private val webRequestBuilder: WebRequestBuilder
+    private val webRequestBuilder: WebRequestBuilder,
+    private val plausibleDeniabilityEnabled: Boolean
 ) : Playbook {
 
     private val uid = UUID.randomUUID().toString()
@@ -29,12 +34,12 @@ class PlaybookImpl(
             executeCapturingExceptions { webRequestBuilder.asyncGetRegistrationToken(key, keyType) }
 
         // fake verification
-        ignoreExceptions { webRequestBuilder.asyncFakeVerification() }
+        executeFakeRequest { webRequestBuilder.asyncFakeVerification() }
 
         // fake submission
-        ignoreExceptions { webRequestBuilder.asyncFakeSubmission() }
+        executeFakeRequest { webRequestBuilder.asyncFakeSubmission() }
 
-        coroutineScope.launch { followUpPlaybooks() }
+        launchFollowUpPlaybooks()
 
         return registrationToken ?: propagateException(exception)
     }
@@ -47,12 +52,12 @@ class PlaybookImpl(
             executeCapturingExceptions { webRequestBuilder.asyncGetTestResult(registrationToken) }
 
         // fake verification
-        ignoreExceptions { webRequestBuilder.asyncFakeVerification() }
+        executeFakeRequest { webRequestBuilder.asyncFakeVerification() }
 
         // fake submission
-        ignoreExceptions { webRequestBuilder.asyncFakeSubmission() }
+        executeFakeRequest { webRequestBuilder.asyncFakeSubmission() }
 
-        coroutineScope.launch { followUpPlaybooks() }
+        launchFollowUpPlaybooks()
 
         return testResult?.let { TestResult.fromInt(it) }
             ?: propagateException(exception)
@@ -72,31 +77,40 @@ class PlaybookImpl(
         }
 
         // fake verification
-        ignoreExceptions { webRequestBuilder.asyncFakeVerification() }
+        executeFakeRequest { webRequestBuilder.asyncFakeVerification() }
 
         // real submission
         if (authCode != null) {
             webRequestBuilder.asyncSubmitKeysToServer(authCode, keys)
-            coroutineScope.launch { followUpPlaybooks() }
+            launchFollowUpPlaybooks()
         } else {
             webRequestBuilder.asyncFakeSubmission()
-            coroutineScope.launch { followUpPlaybooks() }
+            launchFollowUpPlaybooks()
             propagateException(exception)
         }
     }
 
     private suspend fun dummy(launchFollowUp: Boolean) {
         // fake verification
-        ignoreExceptions { webRequestBuilder.asyncFakeVerification() }
+        executeFakeRequest { webRequestBuilder.asyncFakeVerification() }
 
         // fake verification
-        ignoreExceptions { webRequestBuilder.asyncFakeVerification() }
+        executeFakeRequest { webRequestBuilder.asyncFakeVerification() }
 
         // fake submission
-        ignoreExceptions { webRequestBuilder.asyncFakeSubmission() }
+        executeFakeRequest { webRequestBuilder.asyncFakeSubmission() }
 
         if (launchFollowUp)
-            coroutineScope.launch { followUpPlaybooks() }
+            launchFollowUpPlaybooks()
+    }
+
+    private fun launchFollowUpPlaybooks() {
+        if (!plausibleDeniabilityEnabled) {
+            Timber.d("Plausible deniability is not enabled. Skipping follow up playbooks")
+            return
+        }
+
+        coroutineScope.launch { followUpPlaybooks() }
     }
 
     override suspend fun dummy() = dummy(true)
@@ -121,7 +135,12 @@ class PlaybookImpl(
         Timber.i("[$uid] Follow Up: finished")
     }
 
-    private suspend fun ignoreExceptions(body: suspend () -> Unit) {
+    private suspend fun executeFakeRequest(body: suspend () -> Unit) {
+        if (!plausibleDeniabilityEnabled) {
+            Timber.d("Plausible deniability is not enabled. Skipping fake request")
+            return
+        }
+
         try {
             body.invoke()
         } catch (e: Exception) {

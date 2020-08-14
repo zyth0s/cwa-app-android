@@ -9,6 +9,7 @@ import okhttp3.mockwebserver.MockWebServer
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
 import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.greaterThan
 import org.junit.Assert.fail
 import org.junit.Test
 
@@ -23,7 +24,7 @@ class PlaybookImplTest {
         server.enqueue(MockResponse().setBody("{}"))
         server.enqueue(MockResponse().setBody("{}"))
 
-        PlaybookImpl(server.newWebRequestBuilder())
+        PlaybookImpl(server.newWebRequestBuilder(), true)
             .initialRegistration("9A3B578UMG", KeyType.TELETAN)
 
         // ensure request order is 2x verification and 1x submission
@@ -39,7 +40,7 @@ class PlaybookImplTest {
         server.enqueue(MockResponse().setBody("{}"))
         server.enqueue(MockResponse().setBody("{}"))
 
-        PlaybookImpl(server.newWebRequestBuilder())
+        PlaybookImpl(server.newWebRequestBuilder(), true)
             .submission("token", listOf())
 
         // ensure request order is 2x verification and 1x submission
@@ -55,7 +56,7 @@ class PlaybookImplTest {
         server.enqueue(MockResponse().setBody("{}"))
         server.enqueue(MockResponse().setBody("{}"))
 
-        PlaybookImpl(server.newWebRequestBuilder())
+        PlaybookImpl(server.newWebRequestBuilder(), true)
             .testResult("token")
 
         // ensure request order is 2x verification and 1x submission
@@ -71,7 +72,7 @@ class PlaybookImplTest {
         server.enqueue(MockResponse().setBody("{}"))
         server.enqueue(MockResponse().setBody("{}"))
 
-        PlaybookImpl(server.newWebRequestBuilder())
+        PlaybookImpl(server.newWebRequestBuilder(), true)
             .dummy()
 
         // ensure request order is 2x verification and 1x submission
@@ -88,7 +89,7 @@ class PlaybookImplTest {
         server.enqueue(MockResponse().setResponseCode(500))
         server.enqueue(MockResponse().setResponseCode(500))
 
-        val registrationToken = PlaybookImpl(server.newWebRequestBuilder())
+        val registrationToken = PlaybookImpl(server.newWebRequestBuilder(), true)
             .initialRegistration("key", KeyType.GUID)
 
         assertThat(registrationToken, equalTo(expectedRegistrationToken))
@@ -105,7 +106,7 @@ class PlaybookImplTest {
 
         try {
 
-            PlaybookImpl(server.newWebRequestBuilder())
+            PlaybookImpl(server.newWebRequestBuilder(), true)
                 .initialRegistration("9A3B578UMG", KeyType.TELETAN)
             fail("exception propagation expected")
         } catch (e: InternalServerErrorException) {
@@ -127,7 +128,7 @@ class PlaybookImplTest {
 
         try {
 
-            PlaybookImpl(server.newWebRequestBuilder())
+            PlaybookImpl(server.newWebRequestBuilder(), true)
                 .testResult("token")
             fail("exception propagation expected")
         } catch (e: InternalServerErrorException) {
@@ -147,7 +148,7 @@ class PlaybookImplTest {
         server.enqueue(MockResponse().setBody("{}"))
 
         try {
-            PlaybookImpl(server.newWebRequestBuilder())
+            PlaybookImpl(server.newWebRequestBuilder(), true)
                 .submission("token", listOf())
             fail("exception propagation expected")
         } catch (e: InternalServerErrorException) {
@@ -155,6 +156,58 @@ class PlaybookImplTest {
 
         // ensure request order is 2x verification and 1x submission
         assertRequestPattern(server)
+    }
+
+
+    @Test
+    fun noPlausibleDeniability_initialRegistration(): Unit = runBlocking {
+        val server = MockWebServer()
+        server.start()
+
+        server.enqueue(MockResponse().setBody("""{"registrationToken":"response"}"""))
+
+        PlaybookImpl(server.newWebRequestBuilder(), false)
+            .initialRegistration("9A3B578UMG", KeyType.TELETAN)
+
+        // ensure no fake requests were executed
+        assertOnlyRealRequests(server)
+    }
+
+
+    @Test
+    fun noPlausibleDeniability__submission(): Unit = runBlocking {
+        val server = MockWebServer()
+        server.start()
+
+        server.enqueue(MockResponse().setBody("""{"tan":"response"}"""))
+        server.enqueue(MockResponse().setBody("{}"))
+
+        PlaybookImpl(server.newWebRequestBuilder(), false)
+            .submission("token", listOf())
+
+        // ensure no fake requests were executed
+        assertOnlyRealRequests(server)
+    }
+
+    @Test
+    fun noPlausibleDeniability__testResult(): Unit = runBlocking {
+        val server = MockWebServer()
+        server.start()
+
+        server.enqueue(MockResponse().setBody("""{"testResult":0}"""))
+
+        PlaybookImpl(server.newWebRequestBuilder(), false)
+            .testResult("token")
+
+        // ensure no fake requests were executed
+        assertOnlyRealRequests(server)
+    }
+
+    private fun assertOnlyRealRequests(server: MockWebServer) {
+        assertThat(server.requestCount, greaterThan(0))
+        repeat(server.requestCount) {
+            assertThat(server.takeRequest().headers["cwa-fake"], equalTo("0"))
+        }
     }
 
     private fun assertRequestPattern(server: MockWebServer) {

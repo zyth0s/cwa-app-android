@@ -472,7 +472,7 @@ object RiskLevelTransaction : Transaction() {
      */
     private suspend fun getApplicationConfiguration(): ApplicationConfigurationOuterClass.ApplicationConfiguration =
         withContext(Dispatchers.Default) {
-            return@withContext ApplicationConfigurationService.asyncRetrieveApplicationConfiguration()
+            return@withContext ApplicationConfigurationService.getInstance().asyncRetrieveApplicationConfiguration()
                 .also { Timber.v("configuration from backend: $it") }
         }
 

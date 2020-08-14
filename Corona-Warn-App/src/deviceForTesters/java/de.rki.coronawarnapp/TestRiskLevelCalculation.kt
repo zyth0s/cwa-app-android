@@ -220,7 +220,7 @@ class TestRiskLevelCalculation : Fragment() {
                     // only testing implementation: this is used to wait for the broadcastreceiver of the OS / EN API
                     InternalExposureNotificationClient.asyncProvideDiagnosisKeys(
                         googleFileList,
-                        ApplicationConfigurationService.asyncRetrieveExposureConfiguration(),
+                        ApplicationConfigurationService.getInstance().asyncRetrieveExposureConfiguration(),
                         token
                     )
                     Toast.makeText(
@@ -251,7 +251,7 @@ class TestRiskLevelCalculation : Fragment() {
                     InternalExposureNotificationClient.asyncGetExposureSummary(googleToken)
 
                 val appConfig =
-                    ApplicationConfigurationService.asyncRetrieveApplicationConfiguration()
+                    ApplicationConfigurationService.getInstance().asyncRetrieveApplicationConfiguration()
 
                 val riskLevelScore = RiskLevelCalculation.calculateRiskScore(
                     appConfig.attenuationDuration,

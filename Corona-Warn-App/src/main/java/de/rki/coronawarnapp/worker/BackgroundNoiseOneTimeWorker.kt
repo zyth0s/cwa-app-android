@@ -5,6 +5,8 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import de.rki.coronawarnapp.http.WebRequestBuilder
 import de.rki.coronawarnapp.http.playbook.PlaybookImpl
+import de.rki.coronawarnapp.service.applicationconfiguration.ApplicationConfigurationService
+import de.rki.coronawarnapp.service.applicationconfiguration.FeatureFlags
 
 /**
  * One time background noise worker
@@ -30,7 +32,15 @@ class BackgroundNoiseOneTimeWorker(
         var result = Result.success()
 
         try {
-            PlaybookImpl(WebRequestBuilder.getInstance())
+            val appConfigService = ApplicationConfigurationService.getInstance()
+
+            val plausibleDeniabilityEnabled = FeatureFlags(appConfigService)
+                .isPlausibleDeniabilityEnabled()
+
+            if (!plausibleDeniabilityEnabled)
+                return Result.success()
+
+            PlaybookImpl(WebRequestBuilder.getInstance(), plausibleDeniabilityEnabled)
                 .dummy()
         } catch (e: Exception) {
             // TODO: Should we even retry here?

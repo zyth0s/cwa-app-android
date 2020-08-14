@@ -67,7 +67,7 @@ class UpdateChecker(private val activity: LauncherActivity) {
 
     private suspend fun checkIfUpdatesNeededFromServer(): Boolean {
         val applicationConfigurationFromServer =
-            ApplicationConfigurationService.asyncRetrieveApplicationConfiguration()
+            ApplicationConfigurationService.getInstance().asyncRetrieveApplicationConfiguration()
 
         val minVersionFromServer = applicationConfigurationFromServer.appVersion.android.min
         val minVersionFromServerString =

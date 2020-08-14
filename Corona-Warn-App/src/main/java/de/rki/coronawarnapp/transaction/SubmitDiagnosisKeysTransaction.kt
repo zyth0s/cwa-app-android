@@ -3,6 +3,8 @@ package de.rki.coronawarnapp.transaction
 import com.google.android.gms.nearby.exposurenotification.TemporaryExposureKey
 import de.rki.coronawarnapp.http.WebRequestBuilder
 import de.rki.coronawarnapp.http.playbook.PlaybookImpl
+import de.rki.coronawarnapp.service.applicationconfiguration.ApplicationConfigurationService
+import de.rki.coronawarnapp.service.applicationconfiguration.FeatureFlags
 import de.rki.coronawarnapp.service.submission.SubmissionService
 import de.rki.coronawarnapp.transaction.SubmitDiagnosisKeysTransaction.SubmitDiagnosisKeysTransactionState.CLOSE
 import de.rki.coronawarnapp.transaction.SubmitDiagnosisKeysTransaction.SubmitDiagnosisKeysTransactionState.RETRIEVE_TAN_AND_SUBMIT_KEYS
@@ -63,7 +65,11 @@ object SubmitDiagnosisKeysTransaction : Transaction() {
          * RETRIEVE TAN & SUBMIT KEYS
          ****************************************************/
         executeState(RETRIEVE_TAN_AND_SUBMIT_KEYS) {
-            PlaybookImpl(WebRequestBuilder.getInstance()).submission(
+            val appConfigService = ApplicationConfigurationService.getInstance()
+            val plausibleDeniabilityEnabled = FeatureFlags(appConfigService)
+                .isPlausibleDeniabilityEnabled()
+
+            PlaybookImpl(WebRequestBuilder.getInstance(), plausibleDeniabilityEnabled).submission(
                 registrationToken,
                 temporaryExposureKeyList
             )

@@ -1,6 +1,8 @@
 package de.rki.coronawarnapp.http.playbook
 
 import de.rki.coronawarnapp.http.WebRequestBuilder
+import de.rki.coronawarnapp.service.applicationconfiguration.ApplicationConfigurationService
+import de.rki.coronawarnapp.service.applicationconfiguration.FeatureFlags
 import de.rki.coronawarnapp.service.submission.SubmissionConstants
 import de.rki.coronawarnapp.storage.LocalData
 import de.rki.coronawarnapp.worker.BackgroundWorkScheduler
@@ -20,7 +22,11 @@ class BackgroundNoise {
         }
     }
 
-    fun scheduleDummyPattern() {
+    suspend fun scheduleDummyPattern() {
+        val featureFlags = FeatureFlags(ApplicationConfigurationService.getInstance())
+        if (!featureFlags.isPlausibleDeniabilityEnabled())
+            return
+
         BackgroundWorkScheduler.scheduleBackgroundNoisePeriodicWork()
     }
 
@@ -28,7 +34,13 @@ class BackgroundNoise {
         if (LocalData.isAllowedToSubmitDiagnosisKeys() == true) {
             val chance = Random.nextFloat() * 100
             if (chance < SubmissionConstants.probabilityToExecutePlaybookWhenOpenApp) {
-                PlaybookImpl(WebRequestBuilder.getInstance())
+
+                val featureFlags = FeatureFlags(ApplicationConfigurationService.getInstance())
+                val plausibleDeniabilityEnabled = featureFlags.isPlausibleDeniabilityEnabled()
+                if (!plausibleDeniabilityEnabled)
+                    return
+
+                PlaybookImpl(WebRequestBuilder.getInstance(), plausibleDeniabilityEnabled)
                     .dummy()
             }
         }

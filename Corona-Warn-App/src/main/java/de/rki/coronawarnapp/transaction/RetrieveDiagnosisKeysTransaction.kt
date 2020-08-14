@@ -245,7 +245,7 @@ object RetrieveDiagnosisKeysTransaction : Transaction() {
      */
     private suspend fun executeRetrieveRiskScoreParams() =
         executeState(RETRIEVE_RISK_SCORE_PARAMS) {
-            ApplicationConfigurationService.asyncRetrieveExposureConfiguration()
+            ApplicationConfigurationService.getInstance().asyncRetrieveExposureConfiguration()
         }
 
     /**

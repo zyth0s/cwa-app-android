@@ -6,6 +6,8 @@ import de.rki.coronawarnapp.exception.NoRegistrationTokenSetException
 import de.rki.coronawarnapp.http.WebRequestBuilder
 import de.rki.coronawarnapp.http.playbook.BackgroundNoise
 import de.rki.coronawarnapp.http.playbook.PlaybookImpl
+import de.rki.coronawarnapp.service.applicationconfiguration.ApplicationConfigurationService
+import de.rki.coronawarnapp.service.applicationconfiguration.FeatureFlags
 import de.rki.coronawarnapp.storage.LocalData
 import de.rki.coronawarnapp.transaction.SubmitDiagnosisKeysTransaction
 import de.rki.coronawarnapp.util.formatter.TestResult
@@ -27,8 +29,15 @@ object SubmissionService {
     }
 
     private suspend fun asyncRegisterDeviceViaGUID(guid: String) {
+        val appConfigService = ApplicationConfigurationService.getInstance()
+        val plausibleDeniabilityEnabled = FeatureFlags(appConfigService)
+            .isPlausibleDeniabilityEnabled()
+
         val registrationToken =
-            PlaybookImpl(WebRequestBuilder.getInstance()).initialRegistration(
+            PlaybookImpl(
+                WebRequestBuilder.getInstance(),
+                plausibleDeniabilityEnabled
+            ).initialRegistration(
                 guid,
                 KeyType.GUID
             )
@@ -38,8 +47,15 @@ object SubmissionService {
     }
 
     private suspend fun asyncRegisterDeviceViaTAN(tan: String) {
+        val appConfigService = ApplicationConfigurationService.getInstance()
+        val plausibleDeniabilityEnabled = FeatureFlags(appConfigService)
+            .isPlausibleDeniabilityEnabled()
+
         val registrationToken =
-            PlaybookImpl(WebRequestBuilder.getInstance()).initialRegistration(
+            PlaybookImpl(
+                WebRequestBuilder.getInstance(),
+                plausibleDeniabilityEnabled
+            ).initialRegistration(
                 tan,
                 KeyType.TELETAN
             )
@@ -58,7 +74,14 @@ object SubmissionService {
         val registrationToken =
             LocalData.registrationToken() ?: throw NoRegistrationTokenSetException()
 
-        return PlaybookImpl(WebRequestBuilder.getInstance()).testResult(registrationToken)
+        val appConfigService = ApplicationConfigurationService.getInstance()
+        val plausibleDeniabilityEnabled = FeatureFlags(appConfigService)
+            .isPlausibleDeniabilityEnabled()
+
+        return PlaybookImpl(
+            WebRequestBuilder.getInstance(),
+            plausibleDeniabilityEnabled
+        ).testResult(registrationToken)
     }
 
     fun containsValidGUID(scanResult: String): Boolean {

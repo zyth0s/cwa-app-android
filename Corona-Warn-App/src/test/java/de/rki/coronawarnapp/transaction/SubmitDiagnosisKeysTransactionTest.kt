@@ -5,6 +5,7 @@ import com.google.android.gms.nearby.exposurenotification.TemporaryExposureKey
 import de.rki.coronawarnapp.http.WebRequestBuilder
 import de.rki.coronawarnapp.http.playbook.BackgroundNoise
 import de.rki.coronawarnapp.nearby.InternalExposureNotificationClient
+import de.rki.coronawarnapp.service.applicationconfiguration.ApplicationConfigurationService
 import de.rki.coronawarnapp.service.submission.SubmissionService
 import de.rki.coronawarnapp.storage.LocalData
 import de.rki.coronawarnapp.worker.BackgroundWorkScheduler
@@ -15,6 +16,7 @@ import io.mockk.coVerifyOrder
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.just
+import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.slot
 import io.mockk.unmockkAll
@@ -33,6 +35,9 @@ class SubmitDiagnosisKeysTransactionTest {
     @MockK
     private lateinit var backgroundNoise: BackgroundNoise
 
+    @MockK
+    private lateinit var applicationConfigurationService: ApplicationConfigurationService
+
     private val authString = "authString"
     private val registrationToken = "123"
 
@@ -45,6 +50,11 @@ class SubmitDiagnosisKeysTransactionTest {
 
         mockkObject(BackgroundNoise.Companion)
         every { BackgroundNoise.getInstance() } returns backgroundNoise
+
+        mockkObject(ApplicationConfigurationService.Companion)
+        coEvery { ApplicationConfigurationService.getInstance() } returns applicationConfigurationService
+
+        coEvery { applicationConfigurationService.asyncRetrieveApplicationConfiguration() } returns mockk()
 
         mockkObject(LocalData)
         mockkObject(SubmissionService)
