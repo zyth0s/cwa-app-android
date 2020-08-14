@@ -202,6 +202,8 @@
     <string name="risk_card_loading_headline">"Prüfung läuft …"</string>
     <!-- XTXT: risk card - loading, data is downloaded and will be checked, this can take several minutes -->
     <string name="risk_card_loading_body">"Es werden aktuelle Daten heruntergeladen und geprüft. Dies kann mehrere Minuten dauern."</string>
+    <!-- XTXT: risk card - reminder to open app daily body text -->
+    <string name="risk_card_open_app_reminder">"Hinweis: Bitte öffnen Sie die App täglich, um den Risikostatus zu aktualisieren."</string>
 
     <!-- ####################################
                     Main
