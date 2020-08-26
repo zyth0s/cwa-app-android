@@ -20,6 +20,7 @@ class DiagnosisKeyRetrievalOneTimeWorker(val context: Context, workerParams: Wor
 
     companion object {
         private val TAG: String? = DiagnosisKeyRetrievalOneTimeWorker::class.simpleName
+        private val notificationID = TAG.hashCode()
     }
 
     /**
@@ -41,7 +42,7 @@ class DiagnosisKeyRetrievalOneTimeWorker(val context: Context, workerParams: Wor
                 context.getString(R.string.notification_headline),
                 "Retrieving Diagnosis Keys...(Dev-Test)"
             )?.let {
-                val foregroundInfo = ForegroundInfo(14, it)
+                val foregroundInfo = ForegroundInfo(notificationID, it)
                 setForeground(foregroundInfo)
                 Timber.d("Started as foreground service")
             }
@@ -65,7 +66,7 @@ class DiagnosisKeyRetrievalOneTimeWorker(val context: Context, workerParams: Wor
         BackgroundWorkHelper.sendDebugNotification(
             "KeyOneTime Executing: End", "KeyOneTime result: $result "
         )
-        
+
         Timber.d("KeyOneTime ended with result: $result")
         return result
     }
