@@ -39,15 +39,9 @@ class DiagnosisKeyRetrievalPeriodicWorker(val context: Context, workerParams: Wo
         var result = Result.success()
         try {
 
-            NotificationHelper.buildNotificationForForegroundService(
-                context.getString(R.string.notification_headline),
-                ""
-            )?.let {
-                val foregroundInfo = ForegroundInfo(notificationID, it)
-                setForeground(foregroundInfo)
-                Timber.d("Started as foreground service")
-            }
+            BackgroundWorkHelper.moveCoroutineWorkerToForeground(context.getString(R.string.notification_headline), "", notificationID, this)
             BackgroundWorkScheduler.scheduleDiagnosisKeyOneTimeWork()
+
         } catch (e: Exception) {
             if (runAttemptCount > BackgroundConstants.WORKER_RETRY_COUNT_THRESHOLD) {
 

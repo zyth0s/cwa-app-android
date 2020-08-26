@@ -2,6 +2,8 @@ package de.rki.coronawarnapp.worker
 
 import androidx.core.app.NotificationCompat
 import androidx.work.Constraints
+import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
 import androidx.work.NetworkType
 import de.rki.coronawarnapp.notification.NotificationHelper
 import de.rki.coronawarnapp.storage.LocalData
@@ -92,5 +94,24 @@ object BackgroundWorkHelper {
     fun sendDebugNotification(title: String, content: String) {
         if (!LocalData.backgroundNotification()) return
         NotificationHelper.sendNotification(title, content, NotificationCompat.PRIORITY_HIGH, true)
+    }
+
+
+    /**
+     * Move the given worker to foreground
+     *
+     * @param title: String
+     * @param content: String
+     * @param notificationID: Int
+     * @param worker: CoroutineWorker
+     */
+    suspend fun moveCoroutineWorkerToForeground(
+        title: String,
+        content: String,
+        notificationID: Int,
+        worker: CoroutineWorker
+    ) {
+        NotificationHelper.buildNotificationForForegroundService(title, content)
+            ?.let { worker.setForeground(ForegroundInfo(notificationID, it)) }
     }
 }

@@ -35,17 +35,10 @@ class BackgroundNoiseOneTimeWorker(
         var result = Result.success()
 
         try {
-            NotificationHelper.buildNotificationForForegroundService(
-                context.getString(R.string.notification_headline),
-                ""
-            )?.let {
-                val foregroundInfo = ForegroundInfo(notificationID, it)
-                setForeground(foregroundInfo)
-                Timber.d("Started as foreground service")
-            }
 
-            PlaybookImpl(WebRequestBuilder.getInstance())
-                .dummy()
+            BackgroundWorkHelper.moveCoroutineWorkerToForeground(context.getString(R.string.notification_headline), "", notificationID, this)
+            PlaybookImpl(WebRequestBuilder.getInstance()).dummy()
+
         } catch (e: Exception) {
             // TODO: Should we even retry here?
             result = if (runAttemptCount > BackgroundConstants.WORKER_RETRY_COUNT_THRESHOLD) {

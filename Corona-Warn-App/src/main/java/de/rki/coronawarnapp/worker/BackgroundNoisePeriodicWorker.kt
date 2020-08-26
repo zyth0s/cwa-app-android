@@ -40,14 +40,8 @@ class BackgroundNoisePeriodicWorker(
 
         var result = Result.success()
         try {
-            NotificationHelper.buildNotificationForForegroundService(
-                context.getString(R.string.notification_headline),
-                ""
-            )?.let {
-                val foregroundInfo = ForegroundInfo(notificationID, it)
-                setForeground(foregroundInfo)
-                Timber.d("Started as foreground service")
-            }
+
+            BackgroundWorkHelper.moveCoroutineWorkerToForeground(context.getString(R.string.notification_headline), "", notificationID, this)
 
             val initialPairingDate = DateTime(
                 LocalData.devicePairingSuccessfulTimestamp(),
