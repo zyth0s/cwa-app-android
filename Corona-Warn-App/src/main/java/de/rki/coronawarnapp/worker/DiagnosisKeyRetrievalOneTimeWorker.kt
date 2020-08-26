@@ -2,7 +2,10 @@ package de.rki.coronawarnapp.worker
 
 import android.content.Context
 import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
+import de.rki.coronawarnapp.R
+import de.rki.coronawarnapp.notification.NotificationHelper
 import de.rki.coronawarnapp.transaction.RetrieveDiagnosisKeysTransaction
 import timber.log.Timber
 
@@ -29,16 +32,29 @@ class DiagnosisKeyRetrievalOneTimeWorker(val context: Context, workerParams: Wor
     override suspend fun doWork(): Result {
         Timber.d("Background job started. Run attempt: $runAttemptCount ")
         BackgroundWorkHelper.sendDebugNotification(
-            "KeyOneTime Executing: Start", "KeyOneTime started. Run attempt: $runAttemptCount ")
+            "KeyOneTime Executing: Start", "KeyOneTime started. Run attempt: $runAttemptCount "
+        )
 
         var result = Result.success()
         try {
+            NotificationHelper.buildNotificationForForegroundService(
+                context.getString(R.string.notification_headline),
+                "Retrieving Diagnosis Keys...(Dev-Test)"
+            )?.let {
+                val foregroundInfo = ForegroundInfo(14, it)
+                setForeground(foregroundInfo)
+                Timber.d("Started as foreground service")
+            }
+
+
             RetrieveDiagnosisKeysTransaction.startWithConstraints()
         } catch (e: Exception) {
             if (runAttemptCount > BackgroundConstants.WORKER_RETRY_COUNT_THRESHOLD) {
 
                 BackgroundWorkHelper.sendDebugNotification(
-                    "KeyOneTime Executing: Failure", "KeyOneTime failed with $runAttemptCount attempts")
+                    "KeyOneTime Executing: Failure",
+                    "KeyOneTime failed with $runAttemptCount attempts"
+                )
 
                 return Result.failure()
             } else {
@@ -47,8 +63,10 @@ class DiagnosisKeyRetrievalOneTimeWorker(val context: Context, workerParams: Wor
         }
 
         BackgroundWorkHelper.sendDebugNotification(
-            "KeyOneTime Executing: End", "KeyOneTime result: $result ")
-
+            "KeyOneTime Executing: End", "KeyOneTime result: $result "
+        )
+        
+        Timber.d("KeyOneTime ended with result: $result")
         return result
     }
 }

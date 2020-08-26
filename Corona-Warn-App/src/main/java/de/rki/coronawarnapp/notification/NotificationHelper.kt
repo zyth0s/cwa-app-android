@@ -98,11 +98,12 @@ object NotificationHelper {
         title: String,
         content: String,
         visibility: Int,
-        expandableLongText: Boolean = false
+        expandableLongText: Boolean = false,
+        priority: Int = NotificationCompat.PRIORITY_MAX
     ): Notification? {
         val builder = NotificationCompat.Builder(CoronaWarnApplication.getAppContext(), channelId)
             .setSmallIcon(NotificationConstants.NOTIFICATION_SMALL_ICON)
-            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setPriority(priority)
             .setVisibility(visibility)
             .setContentIntent(createPendingIntentToMainActivity())
             .setAutoCancel(true)
@@ -196,5 +197,26 @@ object NotificationHelper {
                 Timber.d("Notification build failed.")
             }
         }
+    }
+
+
+    /**
+     * Build notification for foreground service
+     * Create notification with defined title and content text.
+     * This notification is shown while work is running in background
+     *
+     * @param title: String
+     * @param content: String
+     *
+     * @return Notification?
+     */
+    fun buildNotificationForForegroundService(title: String, content: String): Notification? {
+        return buildNotification(
+            title,
+            content,
+            NotificationCompat.VISIBILITY_PUBLIC,
+            false,
+            NotificationCompat.PRIORITY_LOW
+        )
     }
 }
