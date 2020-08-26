@@ -2,9 +2,13 @@ package de.rki.coronawarnapp.worker
 
 import android.content.Context
 import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
+import de.rki.coronawarnapp.R
 import de.rki.coronawarnapp.http.WebRequestBuilder
 import de.rki.coronawarnapp.http.playbook.PlaybookImpl
+import de.rki.coronawarnapp.notification.NotificationHelper
+import timber.log.Timber
 
 /**
  * One time background noise worker
@@ -19,6 +23,7 @@ class BackgroundNoiseOneTimeWorker(
 
     companion object {
         private val TAG: String? = BackgroundNoiseOneTimeWorker::class.simpleName
+        private val notificationID = TAG.hashCode()
     }
 
     /**
@@ -30,6 +35,15 @@ class BackgroundNoiseOneTimeWorker(
         var result = Result.success()
 
         try {
+            NotificationHelper.buildNotificationForForegroundService(
+                context.getString(R.string.notification_headline),
+                ""
+            )?.let {
+                val foregroundInfo = ForegroundInfo(notificationID, it)
+                setForeground(foregroundInfo)
+                Timber.d("Started as foreground service")
+            }
+
             PlaybookImpl(WebRequestBuilder.getInstance())
                 .dummy()
         } catch (e: Exception) {
