@@ -5,6 +5,12 @@ import android.text.TextUtils
 import androidx.work.ListenableWorker
 import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import timber.log.Timber
+import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -32,6 +38,9 @@ object ForegroundPocTracker {
             .edit()
             .putString(sharedPrefStringsName, json)
             .apply()
+
+        writeToFile(strings, ctx)
+        writeWorkerExecutionToLog(ctx)
     }
 
     fun get(ctx: Context): MutableList<String> {
@@ -45,5 +54,34 @@ object ForegroundPocTracker {
         }
 
         return strings
+    }
+
+    private fun writeToFile(strings: List<String>, ctx: Context) {
+        CoroutineScope(Dispatchers.IO)
+            .launch(Dispatchers.IO) {
+                try {
+                    val file = File(ctx.filesDir, "WorkerLog.txt")
+                    if (!file.exists()) {
+                        file.createNewFile()
+                    }
+
+                    FileOutputStream(file, true)
+                        .bufferedWriter()
+                        .use { writer ->
+                            writer.appendln("------------------------------------------------------------------------------------------------------------------------------------")
+                            writer.appendln(TextUtils.join(System.lineSeparator(), strings))
+                            writer.appendln("------------------------------------------------------------------------------------------------------------------------------------")
+                            writer.appendln()
+                        }
+                } catch (e: Exception) {
+                    Timber.e(e)
+                }
+            }
+    }
+
+    fun writeWorkerExecutionToLog(ctx: Context) {
+        Timber.d("------------------------------------------------------------------------------------------------------------------------------------")
+        Timber.d(TextUtils.join(System.lineSeparator(), get(ctx)))
+        Timber.d("------------------------------------------------------------------------------------------------------------------------------------")
     }
 }
