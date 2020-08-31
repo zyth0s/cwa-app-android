@@ -183,4 +183,5 @@ class CoronaWarnApplication : Application(), LifecycleObserver,
         LocalBroadcastManager.getInstance(this)
             .registerReceiver(errorReceiver, IntentFilter(ERROR_REPORT_LOCAL_BROADCAST_CHANNEL))
     }
+    //test
 }
