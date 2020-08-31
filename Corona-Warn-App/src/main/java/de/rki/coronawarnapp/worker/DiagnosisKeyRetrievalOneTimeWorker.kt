@@ -7,7 +7,9 @@ import androidx.work.WorkerParameters
 import de.rki.coronawarnapp.R
 import de.rki.coronawarnapp.notification.NotificationHelper
 import de.rki.coronawarnapp.transaction.RetrieveDiagnosisKeysTransaction
+import de.rki.coronawarnapp.util.ForegroundPocTracker
 import timber.log.Timber
+import java.util.Date
 
 /**
  * One time diagnosis key retrieval work
@@ -19,7 +21,7 @@ class DiagnosisKeyRetrievalOneTimeWorker(val context: Context, workerParams: Wor
     CoroutineWorker(context, workerParams) {
 
     companion object {
-        private val TAG: String? = DiagnosisKeyRetrievalOneTimeWorker::class.simpleName
+        private val TAG: String = DiagnosisKeyRetrievalOneTimeWorker::class.java.simpleName
         private val notificationID = TAG.hashCode()
     }
 
@@ -61,6 +63,7 @@ class DiagnosisKeyRetrievalOneTimeWorker(val context: Context, workerParams: Wor
         )
 
         Timber.d("KeyOneTime ended with result: $result")
+        ForegroundPocTracker.save(context, TAG, Date(), result)
         return result
     }
 }
