@@ -1156,4 +1156,7 @@
     <!-- NOTR -->
     <string name="test_api_calculate_risk_level">"Calculate Risk Level"</string>
 
+    <string name="test_api_country_filter_status">Länderfilter angewand für: \n%1$s</string>
+    <string name="test_api_country_settings_heading">Länder Einstellungen</string>
+
 </resources>

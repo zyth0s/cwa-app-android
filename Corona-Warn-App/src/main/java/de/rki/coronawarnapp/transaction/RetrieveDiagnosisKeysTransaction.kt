@@ -35,6 +35,7 @@ import de.rki.coronawarnapp.transaction.RetrieveDiagnosisKeysTransaction.Retriev
 import de.rki.coronawarnapp.transaction.RetrieveDiagnosisKeysTransaction.RetrieveDiagnosisKeysTransactionState.TOKEN
 import de.rki.coronawarnapp.transaction.RetrieveDiagnosisKeysTransaction.rollback
 import de.rki.coronawarnapp.transaction.RetrieveDiagnosisKeysTransaction.start
+import de.rki.coronawarnapp.util.CWADebug
 import de.rki.coronawarnapp.util.CachedKeyFileHolder
 import de.rki.coronawarnapp.util.di.AppInjector
 import de.rki.coronawarnapp.worker.BackgroundWorkHelper
@@ -123,6 +124,9 @@ object RetrieveDiagnosisKeysTransaction : Transaction() {
         AppInjector.component.transRetrieveKeysInjection.transactionScope
     }
 
+    var onKeyFilesStarted: (() -> Unit)? = null
+    var onKeyFilesFinished: ((keyCount: Int, fileSize: Long) -> Unit)? = null
+
     suspend fun startWithConstraints() {
         val currentDate = DateTime(Instant.now(), DateTimeZone.getDefault())
         val lastFetch = DateTime(
@@ -141,7 +145,7 @@ object RetrieveDiagnosisKeysTransaction : Transaction() {
     }
 
     /** initiates the transaction. This suspend function guarantees a successful transaction once completed. */
-    suspend fun start() = lockAndExecute(unique = true, scope = transactionScope) {
+    suspend fun start(requestedCountries: List<String>? = null) = lockAndExecute(unique = true, scope = transactionScope) {
         /**
          * Handles the case when the ENClient got disabled but the Transaction is still scheduled
          * in a background job. Also it acts as a failure catch in case the orchestration code did
@@ -170,7 +174,19 @@ object RetrieveDiagnosisKeysTransaction : Transaction() {
         /****************************************************
          * FILES FROM WEB REQUESTS
          ****************************************************/
-        val keyFiles = executeFetchKeyFilesFromServer(currentDate)
+        if (CWADebug.isDebugBuildOrMode) {
+            onKeyFilesStarted?.invoke()
+            onKeyFilesStarted = null
+        }
+
+        val countries = requestedCountries ?: ApplicationConfigurationService
+            .asyncRetrieveApplicationConfiguration()
+            .supportedCountriesList
+
+        val keyFiles = executeFetchKeyFilesFromServer(
+            currentDate,
+            countries
+        )
 
         if (keyFiles.isNotEmpty()) {
             /****************************************************
@@ -180,10 +196,24 @@ object RetrieveDiagnosisKeysTransaction : Transaction() {
         } else {
             Timber.tag(TAG).w("no key files, skipping submission to internal API.")
         }
+
+        if (CWADebug.isDebugBuildOrMode) {
+            var totalFileSize: Long = 0
+            val fileSizeUnit = (1024 * 1024)
+            keyFiles.also {
+                it.forEach { file ->
+                    totalFileSize += file.length()
+                }
+            }
+            onKeyFilesFinished?.invoke(keyFiles.size, totalFileSize / fileSizeUnit)
+            onKeyFilesFinished = null
+        }
+
         /****************************************************
          * Fetch Date Update
          ****************************************************/
         executeFetchDateUpdate(currentDate)
+
         /****************************************************
          * CLOSE TRANSACTION
          ****************************************************/
@@ -257,10 +287,11 @@ object RetrieveDiagnosisKeysTransaction : Transaction() {
      * Executes the WEB_REQUESTS Transaction State
      */
     private suspend fun executeFetchKeyFilesFromServer(
-        currentDate: Date
+        currentDate: Date,
+        countries: List<String>
     ) = executeState(FILES_FROM_WEB_REQUESTS) {
         FileStorageHelper.initializeExportSubDirectory()
-        CachedKeyFileHolder.asyncFetchFiles(currentDate)
+        CachedKeyFileHolder.asyncFetchFiles(currentDate, countries)
     }
 
     /**

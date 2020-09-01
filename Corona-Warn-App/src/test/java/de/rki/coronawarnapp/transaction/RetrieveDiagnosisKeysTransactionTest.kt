@@ -1,11 +1,16 @@
 package de.rki.coronawarnapp.transaction
 
 import com.google.android.gms.nearby.exposurenotification.ExposureConfiguration
+import de.rki.coronawarnapp.http.WebRequestBuilder
 import de.rki.coronawarnapp.nearby.InternalExposureNotificationClient
+import de.rki.coronawarnapp.server.protocols.ApplicationConfigurationOuterClass
 import de.rki.coronawarnapp.service.applicationconfiguration.ApplicationConfigurationService
 import de.rki.coronawarnapp.storage.LocalData
 import de.rki.coronawarnapp.util.di.AppInjector
 import de.rki.coronawarnapp.util.di.ApplicationComponent
+import de.rki.coronawarnapp.util.CWADebug
+import de.rki.coronawarnapp.util.CachedKeyFileHolder
+import io.kotest.matchers.shouldBe
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerifyOrder
@@ -60,15 +65,17 @@ class RetrieveDiagnosisKeysTransactionTest {
 
     @Test
     fun testTransactionNoFiles() {
-        coEvery { RetrieveDiagnosisKeysTransaction["executeFetchKeyFilesFromServer"](any<Date>()) } returns listOf<File>()
+        val requestedCountries = listOf("DE")
+        coEvery { RetrieveDiagnosisKeysTransaction["executeFetchKeyFilesFromServer"](any<Date>(),
+            requestedCountries) } returns listOf<File>()
 
         runBlocking {
-            RetrieveDiagnosisKeysTransaction.start()
+            RetrieveDiagnosisKeysTransaction.start(requestedCountries)
 
             coVerifyOrder {
                 RetrieveDiagnosisKeysTransaction["executeSetup"]()
                 RetrieveDiagnosisKeysTransaction["executeRetrieveRiskScoreParams"]()
-                RetrieveDiagnosisKeysTransaction["executeFetchKeyFilesFromServer"](any<Date>())
+                RetrieveDiagnosisKeysTransaction["executeFetchKeyFilesFromServer"](any<Date>(), requestedCountries)
                 RetrieveDiagnosisKeysTransaction["executeFetchDateUpdate"](any<Date>())
             }
         }
@@ -77,18 +84,17 @@ class RetrieveDiagnosisKeysTransactionTest {
     @Test
     fun testTransactionHasFiles() {
         val file = Paths.get("src", "test", "resources", "keys.bin").toFile()
+        val requestedCountries = listOf("DE")
 
-        coEvery { RetrieveDiagnosisKeysTransaction["executeFetchKeyFilesFromServer"](any<Date>()) } returns listOf(
-            file
-        )
+        coEvery { RetrieveDiagnosisKeysTransaction["executeFetchKeyFilesFromServer"](any<Date>(), requestedCountries) } returns listOf(file)
 
         runBlocking {
-            RetrieveDiagnosisKeysTransaction.start()
+            RetrieveDiagnosisKeysTransaction.start(requestedCountries)
 
             coVerifyOrder {
                 RetrieveDiagnosisKeysTransaction["executeSetup"]()
                 RetrieveDiagnosisKeysTransaction["executeRetrieveRiskScoreParams"]()
-                RetrieveDiagnosisKeysTransaction["executeFetchKeyFilesFromServer"](any<Date>())
+                RetrieveDiagnosisKeysTransaction["executeFetchKeyFilesFromServer"](any<Date>(), requestedCountries)
                 RetrieveDiagnosisKeysTransaction["executeAPISubmission"](
                     any<String>(),
                     listOf(file),
