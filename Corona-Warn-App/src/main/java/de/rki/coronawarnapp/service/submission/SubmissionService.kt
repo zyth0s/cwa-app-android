@@ -51,10 +51,19 @@ object SubmissionService {
         SubmissionRepository.updateTestResult(testResult)
     }
 
-    suspend fun asyncSubmitExposureKeys(keys: List<TemporaryExposureKey>) {
+    suspend fun asyncSubmitExposureKeys(
+        visitedCountries: List<String>,
+        consentToFederation: Boolean,
+        keys: List<TemporaryExposureKey>
+    ) {
         val registrationToken =
             LocalData.registrationToken() ?: throw NoRegistrationTokenSetException()
-        SubmitDiagnosisKeysTransaction.start(registrationToken, keys)
+        SubmitDiagnosisKeysTransaction.start(
+            registrationToken,
+            visitedCountries,
+            consentToFederation,
+            keys
+        )
     }
 
     suspend fun asyncRequestTestResult(): TestResult {

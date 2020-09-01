@@ -13,6 +13,8 @@ object SubmissionRepository {
 
     val testResultReceivedDate = MutableLiveData(Date())
     val deviceUIState = MutableLiveData(DeviceUIState.UNPAIRED)
+    val visitedCountries: MutableLiveData<List<String>> = MutableLiveData()
+    val consentToFederation = MutableLiveData(false)
     private val testResult = MutableLiveData<TestResult?>(null)
 
     suspend fun refreshUIState(refreshTestResult: Boolean) {
@@ -80,5 +82,13 @@ object SubmissionRepository {
 
     fun setTeletan(teletan: String) {
         LocalData.teletan(teletan)
+    }
+
+    fun setVisitedCountries(countries: List<String>) {
+        visitedCountries.postValue(countries)
+    }
+
+    fun setConsentToFederation(consent: Boolean) {
+        consentToFederation.postValue(consent)
     }
 }
