@@ -2,7 +2,10 @@ package de.rki.coronawarnapp.worker
 
 import android.content.Context
 import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
+import de.rki.coronawarnapp.R
+import de.rki.coronawarnapp.notification.NotificationHelper
 import de.rki.coronawarnapp.storage.LocalData
 import de.rki.coronawarnapp.worker.BackgroundWorkScheduler.stop
 import org.joda.time.DateTime
@@ -22,6 +25,7 @@ class BackgroundNoisePeriodicWorker(
 
     companion object {
         private val TAG: String? = BackgroundNoisePeriodicWorker::class.simpleName
+        private val notificationID = TAG.hashCode()
     }
 
     /**
@@ -36,6 +40,9 @@ class BackgroundNoisePeriodicWorker(
 
         var result = Result.success()
         try {
+
+            BackgroundWorkHelper.moveCoroutineWorkerToForeground(context.getString(R.string.notification_headline), "", notificationID, this)
+
             val initialPairingDate = DateTime(
                 LocalData.devicePairingSuccessfulTimestamp(),
                 DateTimeZone.UTC

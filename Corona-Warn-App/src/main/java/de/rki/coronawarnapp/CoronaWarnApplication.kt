@@ -29,6 +29,7 @@ import de.rki.coronawarnapp.util.CWADebug
 import de.rki.coronawarnapp.util.ConnectivityHelper
 import de.rki.coronawarnapp.util.di.AppInjector
 import de.rki.coronawarnapp.util.di.ApplicationComponent
+import de.rki.coronawarnapp.util.ForegroundPocTracker
 import de.rki.coronawarnapp.worker.BackgroundWorkHelper
 import de.rki.coronawarnapp.worker.BackgroundWorkScheduler
 import kotlinx.coroutines.launch
@@ -144,6 +145,10 @@ class CoronaWarnApplication : Application(), LifecycleObserver,
             // in case the app was force stopped and woken up again by the Google WakeUpService
             if (LocalData.onboardingCompletedTimestamp() != null) BackgroundWorkScheduler.startWorkScheduler()
         }
+
+        // Just for POC-Testing
+        ForegroundPocTracker.writeWorkerExecutionToLog(applicationContext)
+        //ForegroundPocTracker.writeToFile(ForegroundPocTracker.get(applicationContext), applicationContext)
     }
 
     /**
