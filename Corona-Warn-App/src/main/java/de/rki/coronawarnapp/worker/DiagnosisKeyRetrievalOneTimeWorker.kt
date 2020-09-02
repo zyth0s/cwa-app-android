@@ -41,7 +41,7 @@ class DiagnosisKeyRetrievalOneTimeWorker(val context: Context, workerParams: Wor
         var result = Result.success()
         try {
 
-            BackgroundWorkHelper.moveCoroutineWorkerToForeground(context.getString(R.string.notification_headline), "(POC) Retrieving Diagnosis Keys...", notificationID, this)
+            //BackgroundWorkHelper.moveCoroutineWorkerToForeground(context.getString(R.string.notification_headline), "(POC) Retrieving Diagnosis Keys...", notificationID, this)
             RetrieveDiagnosisKeysTransaction.startWithConstraints()
 
         } catch (e: Exception) {

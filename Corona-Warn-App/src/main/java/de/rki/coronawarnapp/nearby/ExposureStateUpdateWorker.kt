@@ -28,7 +28,7 @@ class ExposureStateUpdateWorker(val context: Context, workerParams: WorkerParame
 
             var result = Result.success()
         try {
-            BackgroundWorkHelper.moveCoroutineWorkerToForeground(context.getString(R.string.notification_headline), "", notificationID, this)
+            //BackgroundWorkHelper.moveCoroutineWorkerToForeground(context.getString(R.string.notification_headline), "", notificationID, this)
 
             Timber.v("worker to persist exposure summary started")
             val token = inputData.getString(ExposureNotificationClient.EXTRA_TOKEN)

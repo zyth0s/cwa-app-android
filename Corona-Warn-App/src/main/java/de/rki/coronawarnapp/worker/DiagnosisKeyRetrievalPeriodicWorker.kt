@@ -41,7 +41,7 @@ class DiagnosisKeyRetrievalPeriodicWorker(val context: Context, workerParams: Wo
         var result = Result.success()
         try {
 
-            BackgroundWorkHelper.moveCoroutineWorkerToForeground(context.getString(R.string.notification_headline), "", notificationID, this)
+            //BackgroundWorkHelper.moveCoroutineWorkerToForeground(context.getString(R.string.notification_headline), "", notificationID, this)
             BackgroundWorkScheduler.scheduleDiagnosisKeyOneTimeWork()
 
         } catch (e: Exception) {

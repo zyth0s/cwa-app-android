@@ -38,7 +38,7 @@ class BackgroundNoiseOneTimeWorker(
 
         try {
 
-            BackgroundWorkHelper.moveCoroutineWorkerToForeground(context.getString(R.string.notification_headline), "", notificationID, this)
+            //BackgroundWorkHelper.moveCoroutineWorkerToForeground(context.getString(R.string.notification_headline), "", notificationID, this)
             PlaybookImpl(WebRequestBuilder.getInstance()).dummy()
 
         } catch (e: Exception) {
