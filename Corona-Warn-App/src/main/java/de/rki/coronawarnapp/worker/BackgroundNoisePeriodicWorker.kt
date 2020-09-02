@@ -7,10 +7,12 @@ import androidx.work.WorkerParameters
 import de.rki.coronawarnapp.R
 import de.rki.coronawarnapp.notification.NotificationHelper
 import de.rki.coronawarnapp.storage.LocalData
+import de.rki.coronawarnapp.util.ForegroundPocTracker
 import de.rki.coronawarnapp.worker.BackgroundWorkScheduler.stop
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import timber.log.Timber
+import java.util.Date
 
 /**
  * Periodic background noise worker
@@ -24,7 +26,7 @@ class BackgroundNoisePeriodicWorker(
     CoroutineWorker(context, workerParams) {
 
     companion object {
-        private val TAG: String? = BackgroundNoisePeriodicWorker::class.simpleName
+        private val TAG: String = BackgroundNoisePeriodicWorker::class.java.simpleName
         private val notificationID = TAG.hashCode()
     }
 
@@ -62,6 +64,8 @@ class BackgroundNoisePeriodicWorker(
                 Result.retry()
             }
         }
+
+        ForegroundPocTracker.save(context, TAG, Date(), result)
         return result
     }
 

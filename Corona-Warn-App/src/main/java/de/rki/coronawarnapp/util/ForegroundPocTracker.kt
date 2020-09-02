@@ -65,7 +65,7 @@ object ForegroundPocTracker {
                         file.createNewFile()
                     }
 
-                    FileOutputStream(file, true)
+                    FileOutputStream(file, false)
                         .bufferedWriter()
                         .use { writer ->
                             writer.appendln("------------------------------------------------------------------------------------------------------------------------------------")

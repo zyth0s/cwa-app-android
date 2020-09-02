@@ -12,17 +12,21 @@ import de.rki.coronawarnapp.exception.TransactionException
 import de.rki.coronawarnapp.exception.reporting.report
 import de.rki.coronawarnapp.storage.ExposureSummaryRepository
 import de.rki.coronawarnapp.transaction.RiskLevelTransaction
+import de.rki.coronawarnapp.util.ForegroundPocTracker
 import de.rki.coronawarnapp.worker.BackgroundWorkHelper
 import timber.log.Timber
+import java.util.Date
 
 class ExposureStateUpdateWorker(val context: Context, workerParams: WorkerParameters) :
     CoroutineWorker(context, workerParams) {
     companion object {
-        private val TAG = ExposureStateUpdateWorker::class.simpleName
+        private val TAG = ExposureStateUpdateWorker::class.java.simpleName
         private val notificationID = TAG.hashCode()
     }
 
     override suspend fun doWork(): Result {
+
+            var result = Result.success()
         try {
             BackgroundWorkHelper.moveCoroutineWorkerToForeground(context.getString(R.string.notification_headline), "", notificationID, this)
 
@@ -47,6 +51,7 @@ class ExposureStateUpdateWorker(val context: Context, workerParams: WorkerParame
             e.report(ExceptionCategory.INTERNAL)
         }
 
-        return Result.success()
+        ForegroundPocTracker.save(context, TAG, Date(), result)
+        return result
     }
 }

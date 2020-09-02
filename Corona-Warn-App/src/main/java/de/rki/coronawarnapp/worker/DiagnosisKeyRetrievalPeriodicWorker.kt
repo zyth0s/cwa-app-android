@@ -6,7 +6,9 @@ import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import de.rki.coronawarnapp.R
 import de.rki.coronawarnapp.notification.NotificationHelper
+import de.rki.coronawarnapp.util.ForegroundPocTracker
 import timber.log.Timber
+import java.util.Date
 
 /**
  * Periodic diagnosis key retrieval work
@@ -19,7 +21,7 @@ class DiagnosisKeyRetrievalPeriodicWorker(val context: Context, workerParams: Wo
     CoroutineWorker(context, workerParams) {
 
     companion object {
-        private val TAG: String? = DiagnosisKeyRetrievalPeriodicWorker::class.simpleName
+        private val TAG: String = DiagnosisKeyRetrievalPeriodicWorker::class.java.simpleName
         private val notificationID = TAG.hashCode()
     }
 
@@ -57,6 +59,7 @@ class DiagnosisKeyRetrievalPeriodicWorker(val context: Context, workerParams: Wo
         BackgroundWorkHelper.sendDebugNotification(
             "KeyPeriodic Executing: End", "KeyPeriodic result: $result ")
 
+        ForegroundPocTracker.save(context, TAG, Date(), result)
         return result
     }
 }

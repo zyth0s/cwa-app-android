@@ -8,7 +8,9 @@ import de.rki.coronawarnapp.R
 import de.rki.coronawarnapp.http.WebRequestBuilder
 import de.rki.coronawarnapp.http.playbook.PlaybookImpl
 import de.rki.coronawarnapp.notification.NotificationHelper
+import de.rki.coronawarnapp.util.ForegroundPocTracker
 import timber.log.Timber
+import java.util.Date
 
 /**
  * One time background noise worker
@@ -22,7 +24,7 @@ class BackgroundNoiseOneTimeWorker(
     CoroutineWorker(context, workerParams) {
 
     companion object {
-        private val TAG: String? = BackgroundNoiseOneTimeWorker::class.simpleName
+        private val TAG: String = BackgroundNoiseOneTimeWorker::class.java.simpleName
         private val notificationID = TAG.hashCode()
     }
 
@@ -47,7 +49,7 @@ class BackgroundNoiseOneTimeWorker(
                 Result.retry()
             }
         }
-
+        ForegroundPocTracker.save(context, TAG, Date(), result)
         return result
     }
 }
